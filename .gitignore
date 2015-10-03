@@ -1,0 +1,14 @@
+.vs/RayTracer/v14/.suo
+*.obj
+*.exe
+Debug/RayTracer.ilk
+*.pch
+Debug/RayTracer.pdb
+*.idb
+Debug/vc140.pdb
+*.log
+*.tlog
+*.opensdf
+*.ipch
+*.lastbuildstate
+RayTracer.vcxproj.user

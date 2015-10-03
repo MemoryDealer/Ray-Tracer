@@ -59,6 +59,14 @@ namespace RT {
                 mZ + r.mZ );
         }
 
+        inline Vector3 operator + ( const Vector3& r ) const
+        {
+            return Vector3(
+                mX + r.mX,
+                mY + r.mY,
+                mZ + r.mZ );
+        }
+
         inline Vector3 operator - ( const Vector3& r )
         {
             return Vector3(
@@ -67,12 +75,49 @@ namespace RT {
                 mZ - r.mZ );
         }
 
+        inline Vector3 operator - ( const Vector3& r ) const
+        {
+            return Vector3(
+                mX - r.mX,
+                mY - r.mY,
+                mZ - r.mZ );
+        }
+
+        inline Vector3 operator - ( void ) const
+        {
+            return Vector3( -mX, -mY, -mZ );
+        }
+
         inline Vector3 operator * ( const Vector3& r )
         {
             return Vector3(
                 mX * r.mX,
                 mY * r.mY,
                 mZ * r.mZ );
+        }
+
+        inline Vector3 operator * ( const double s )
+        {
+            return Vector3(
+                mX * s,
+                mY * s,
+                mZ * s );
+        }
+
+        inline Vector3 operator * ( const double s ) const
+        {
+            return Vector3(
+                mX * s,
+                mY * s,
+                mZ * s );
+        }
+
+        inline Vector3 operator / ( const Vector3& r )
+        {
+            return Vector3(
+                mX / r.mX,
+                mY / r.mY,
+                mZ / r.mZ );
         }
 
         // Getters:

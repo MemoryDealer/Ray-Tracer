@@ -21,6 +21,11 @@ namespace RT {
 
         ~Ray( void );
 
+        // Getters:
+
+        const Vector3& getOrigin( void ) const { return mOrigin; }
+        const Vector3& getDirection( void ) const { return mDirection; }
+
     private:
 
         Vector3 mOrigin, mDirection;

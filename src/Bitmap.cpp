@@ -68,13 +68,13 @@ Bitmap::Bitmap( const std::string& filename,
     for ( int i = 0; i < k; ++i ) {
         Color c = pixels[i];
 
-        const double r = c.getR() * 255;
-        const double g = c.getG() * 255;
-        const double b = c.getB() * 255;
+        const double r = c.getR() * 255.;
+        const double g = c.getG() * 255.;
+        const double b = c.getB() * 255.;
 
         const char pixel[3] = { static_cast<char>( std::floor( b ) ), 
                                 static_cast<char>( std::floor( g ) ),
-                                static_cast<char>( std::floor( b ) ) };
+                                static_cast<char>( std::floor( r ) ) };
 
         file.write( pixel, sizeof( pixel ) );
     }

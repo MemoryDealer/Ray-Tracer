@@ -123,11 +123,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Bitmap.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Color.cpp" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Ray.cpp" />
+    <ClCompile Include="src\Vector3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Bitmap.h" />
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Color.h" />
+    <ClInclude Include="src\Light.h" />
+    <ClInclude Include="src\Ray.h" />
+    <ClInclude Include="src\Vector3.h" />
     <ClInclude Include="src\_precompiled.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

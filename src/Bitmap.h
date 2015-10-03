@@ -6,7 +6,7 @@
 
 namespace RT {
 
-    struct Color;
+    class Color;
 
     class Bitmap final {
 

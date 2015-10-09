@@ -17,12 +17,12 @@ int main( int argc, char** argv )
     const uint32_t height = 480;
     Scene scene( width, height );
 
-    double ambient = 0.2;
-    double accuracy = 0.000001;
-
     // Objects in scene.
-    scene.addPlane( Vector3( 0., 1., 0. ), -1., Color( 0., 0., 1. ) );
+    Color planeColor = Color::CHECKER;
+    planeColor.setShininess( 0. );
+    scene.addPlane( Vector3( 0., 1., 0. ), -1., planeColor );
     scene.addSphere( Vector3( 0., 0., 0. ), 1., Color( 1., 0., 0. ) );
+    scene.addSphere( Vector3( 2.5, 0., -1. ), 0.75, Color( 0., 1., 0.) );
 
     // Lights.
     scene.addLight( Vector3( -7., 10., 0. ), Color::WHITE );

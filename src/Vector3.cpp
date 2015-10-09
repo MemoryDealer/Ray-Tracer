@@ -83,6 +83,15 @@ const Vector3 Vector3::normalizedCopy( void )
 
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+const Vector3 Vector3::normalizedCopy( void ) const
+{
+    Vector3 v = *this;
+    v.normalize();
+    return v;
+}
+
+// ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 const double Vector3::dot( const Vector3& r ) const
 {
     return mX * r.getX() + mY * r.getY() + mZ * r.getZ();

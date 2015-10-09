@@ -17,6 +17,25 @@ using namespace RT;
 
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
+namespace SceneNS {
+
+    inline const Vector3 getReflectionDirection( const Vector3& pos,
+                                          const Vector3& dir,
+                                          const Vector3& normal )
+    {
+        const double d1 = normal.dot( -dir );
+        const Vector3 s1 = normal * d1;
+        const Vector3 a1 = s1 + dir;
+        const Vector3 s2 = a1 * 2;
+        const Vector3 a2 = -dir + s2;
+        return a2.normalizedCopy();
+    }
+
+}
+using namespace SceneNS;
+
+// ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
+
 Scene::Scene( const uint32_t width,
               const uint32_t height )
 : mWidth( width )
@@ -30,8 +49,8 @@ Scene::Scene( const uint32_t width,
 , mAccuracy( 0.000001 )
 {
     // Setup camera with default values.
-    mCamera.reset( new Camera( Vector3( 0., 5., 10. ),
-                               (Vector3::NEGATIVE_UNIT_Z + Vector3(0., -0.25, 0.) ).normalizedCopy(),
+    mCamera.reset( new Camera( Vector3( 0., 2.5, 10. ),
+                               (Vector3::NEGATIVE_UNIT_Z + Vector3(0., -0.15, 0.) ).normalizedCopy(),
                                Vector3::UNIT_X,
                                Vector3::NEGATIVE_UNIT_Y ) );
 }
@@ -70,13 +89,20 @@ void Scene::addLight( const Vector3& pos,
 
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
-void Scene::render( void )
+void Scene::render( const uint32_t aaDepth )
 {
     double xa, ya;
+    const double aaThreshold = 0.1;
 
     for ( int x = 0; x < mWidth; ++x ) {
         for ( int y = 0; y < mHeight; ++y ) {
             const int i = y * static_cast<int>( mWidth ) + x;
+
+            // Anti-aliasing fires additional rays for each pixel according to depth.
+            // The average is calculated to form the final color.
+            double* tempR = new double[aaDepth * aaDepth];
+            double* tempG = new double[aaDepth * aaDepth];
+            double* tempB = new double[aaDepth * aaDepth];
 
             // Offset the position from the camera to the image plane.
             // No AA.
@@ -132,6 +158,8 @@ void Scene::render( void )
             else {
                 mPixels[i] = Color::BLACK;
             }
+
+            delete [] tempR, tempG, tempB;
         }
     }
 }
@@ -188,10 +216,49 @@ const Color Scene::getColorAt( const Vector3& pos,
 {
     Vector3 objectNormal = mObjects[index]->getNormalAt( pos );
     Color objectColor = mObjects[index]->getColor();
+
+    // Detect checkered color object.
+    if ( objectColor == Color::CHECKER ) {
+        int32_t square = static_cast<int>( std::floor( pos.getX() ) +
+                                           std::floor( pos.getZ() ) );
+
+        if ( ( square % 2 ) == 0 ) {
+            objectColor = Color::BLACK;
+        }
+        else {
+            objectColor = Color::WHITE;
+        }
+    }
     
     // The resulting pixel color.
     Color color = objectColor * mAmbient;
 
+    // Test for reflections.
+    if ( objectColor.getShininess() > 0. ) {
+        const Vector3 rd = getReflectionDirection( pos, dir, objectNormal );
+        Ray rr( pos, rd );
+
+        std::vector<double> rintersections;
+        for ( auto& i : mObjects ) {
+            rintersections.push_back( i->getIntersection( rr ) );
+        }
+
+        const int32_t rindex = getFirstIntersection( rintersections );
+
+        // No collision.
+        if ( rindex != -1 ) {
+            if ( rintersections[rindex] > mAccuracy ) {
+                // Get position of the intersection by adding the distance * direction.
+                Vector3 rpos = pos + ( rd * rintersections[rindex] );
+                
+                Color rcolor = getColorAt( rpos, rd, rindex );
+
+                color = color + ( rcolor * objectColor.getShininess() );
+            }
+        }
+    }
+
+    // Test for shadows.
     for ( auto& i : mLights ) {
         Vector3 lightDir = i->getPosition() - pos;
         lightDir.normalize();
@@ -225,20 +292,14 @@ const Color Scene::getColorAt( const Vector3& pos,
             if ( !shadowed ) {
                 color = color + objectColor * ( i->getColor() * cosAngle );
 
-                const double s = 0.3;
-                double d1 = objectNormal.dot( -dir );
-                Vector3 s1 = objectNormal * d1;
-                Vector3 a1 = s1 + dir;
-                Vector3 s2 = a1 * 2;
-                Vector3 a2 = -dir + s2;
-                Vector3 rd = a2.normalizedCopy();
-
-                double spec = rd.dot( lightDir );
-                if ( spec > 0 ) {
-                    spec = std::pow( spec, 10 );
-                    color = color + i->getColor() * ( spec * s );
+                if ( objectColor.getShininess() > 0. ) {
+                    const Vector3 rd = getReflectionDirection( pos, dir, objectNormal );
+                    double spec = rd.dot( lightDir );
+                    if ( spec > 0 ) {
+                        spec = std::pow( spec, 10 );
+                        color = color + i->getColor() * ( spec * objectColor.getShininess() );
+                    }
                 }
-
             }
         }
     }

@@ -10,17 +10,18 @@ using namespace RT;
 
 const Color Color::WHITE = Color( 1., 1., 1. );
 const Color Color::BLACK = Color( 0., 0., 0. );
+const Color Color::CHECKER = Color( -1., -1., -1. );
 
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 Color::Color( const double r,
               const double g,
               const double b,
-              const double a )
+              const double s )
 : mR( r )
 , mG( g )
 , mB( b )
-, mA( a )
+, mShininess( s )
 {
 }
 
@@ -30,7 +31,7 @@ Color::Color( void )
 : mR( 0. )
 , mG( 0. )
 , mB( 0. )
-, mA( 0. )
+, mShininess( 0.3 )
 {
 }
 

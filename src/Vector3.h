@@ -29,6 +29,8 @@ namespace RT {
 
         const Vector3 normalizedCopy( void );
 
+        const Vector3 normalizedCopy( void ) const;
+
         const double dot( const Vector3& r ) const;
 
         const Vector3 cross( const Vector3& r );

@@ -14,7 +14,7 @@ namespace RT {
         explicit Color( const double r,
                         const double g,
                         const double b,
-                        const double a = 1. );
+                        const double s = 0.3 );
 
         explicit Color( void );
 
@@ -58,9 +58,16 @@ namespace RT {
             mR = r.mR;
             mG = r.mG;
             mB = r.mB;
-            mA = r.mA;
+            mShininess = r.mShininess;
 
             return *this;
+        }
+
+        inline bool operator == ( const Color& r )
+        {
+            return ( mR == r.mR &&
+                     mG == r.mG &&
+                     mB == r.mB );
         }
 
         inline Color operator + ( const Color& r )
@@ -68,8 +75,7 @@ namespace RT {
             return Color(
                 mR + r.mR,
                 mG + r.mG,
-                mB + r.mG,
-                mA + r.mA );
+                mB + r.mG);
         }
 
         inline Color operator + ( const Color& r ) const
@@ -77,8 +83,7 @@ namespace RT {
             return Color(
                 mR + r.mR,
                 mG + r.mG,
-                mB + r.mG,
-                mA + r.mA );
+                mB + r.mG);
         }
 
         inline Color operator * ( const Color& r )
@@ -86,8 +91,7 @@ namespace RT {
             return Color(
                 mR * r.mR,
                 mG * r.mG,
-                mB * r.mB,
-                mA * r.mA );
+                mB * r.mB);
         }
 
         inline Color operator * ( const double s )
@@ -95,8 +99,7 @@ namespace RT {
             return Color(
                 mR * s,
                 mG * s,
-                mB * s,
-                mA * s );
+                mB * s);
         }
 
         inline Color operator * ( const double s ) const
@@ -104,8 +107,7 @@ namespace RT {
             return Color(
                 mR * s,
                 mG * s,
-                mB * s,
-                mA * s );
+                mB * s);
         }
 
         // Getters:
@@ -113,23 +115,29 @@ namespace RT {
         const double getR( void ) const { return mR; }
         const double getG( void ) const { return mG; }
         const double getB( void ) const { return mB; }
-        const double getA( void ) const { return mA; }
+        const double getShininess( void ) { return mShininess; }
 
         // Setters:
 
         void setR( const double r ) { mR = r; }
         void setG( const double g ) { mG = g; }
         void setB( const double b ) { mB = b; }
-        void setA( const double a ) { mA = a; }
+        void setShininess( const double s ) 
+        { 
+            mShininess = s;
+            if ( mShininess > 1. ) mShininess = 1.;
+        }
 
         // Static colors:
 
         static const Color WHITE;
         static const Color BLACK;
+        static const Color CHECKER;
 
     private:
 
-        double mR, mG, mB, mA;
+        double mR, mG, mB;
+        double mShininess;
 
     };
 

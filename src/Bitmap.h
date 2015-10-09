@@ -12,13 +12,18 @@ namespace RT {
 
     public:
 
-        explicit Bitmap( const std::string& filename,
-                         const uint32_t width,
+        explicit Bitmap( const uint32_t width,
                          const uint32_t height,
-                         const uint32_t dpi,
-                         const Color* pixels );
+                         const uint32_t dpi );
 
         ~Bitmap( void );
+
+        const bool write( const std::string& filename,
+                         const Color* pixels );
+
+    private:
+
+        uint32_t mWidth, mHeight, mDPI;
 
     };
 

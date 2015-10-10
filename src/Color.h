@@ -110,6 +110,14 @@ namespace RT {
                 mB * s);
         }
 
+        inline Color operator / ( const double s )
+        {
+            return Color(
+                mR / s,
+                mG / s,
+                mB / s );
+        }
+
         // Getters:
 
         const double getR( void ) const { return mR; }
@@ -132,6 +140,17 @@ namespace RT {
 
         static const Color WHITE;
         static const Color BLACK;
+        static const Color RED;
+        static const Color GREEN;
+        static const Color BLUE;
+        static const Color FORESTGREEN;
+        static const Color GOLD;
+        static const Color ORANGE;
+        static const Color YELLOW;
+        static const Color PURPLE;
+        static const Color CYAN;
+        static const Color TEAL;
+        static const Color PINK;
         static const Color CHECKER;
 
     private:

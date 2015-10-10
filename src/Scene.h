@@ -40,7 +40,7 @@ namespace RT {
         void addLight( const Vector3& pos,
                        const Color& color );
 
-        void render( const uint32_t aaDepth = 0 );
+        void render( const uint32_t aaDepth = 1 );
 
         // Getters:
 

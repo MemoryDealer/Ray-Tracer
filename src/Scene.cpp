@@ -45,11 +45,11 @@ Scene::Scene( const uint32_t width,
 , mPixels( new Color[ width * height ] )
 , mObjects( )
 , mLights( )
-, mAmbient( 0.2 )
+, mAmbient( 0.3 )
 , mAccuracy( 0.000001 )
 {
     // Setup camera with default values.
-    mCamera.reset( new Camera( Vector3( 0., 2.5, 10. ),
+    mCamera.reset( new Camera( Vector3( 0., 6.5, 20. ),
                                (Vector3::NEGATIVE_UNIT_Z + Vector3(0., -0.15, 0.) ).normalizedCopy(),
                                Vector3::UNIT_X,
                                Vector3::NEGATIVE_UNIT_Y ) );
@@ -90,78 +90,116 @@ void Scene::addLight( const Vector3& pos,
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //
 
 void Scene::render( const uint32_t aaDepth )
-{
-    double xa, ya;
+{    
     const double aaThreshold = 0.1;
+    Color* temp = new Color[aaDepth * aaDepth];
 
-    for ( int x = 0; x < mWidth; ++x ) {
-        for ( int y = 0; y < mHeight; ++y ) {
-            const int i = y * static_cast<int>( mWidth ) + x;
-
+    for ( uint32_t x = 0; x < mWidth; ++x ) {
+        for ( uint32_t y = 0; y < mHeight; ++y ) {
+            const uint32_t i = y * static_cast<int>( mWidth ) + x;
+            
             // Anti-aliasing fires additional rays for each pixel according to depth.
             // The average is calculated to form the final color.
-            double* tempR = new double[aaDepth * aaDepth];
-            double* tempG = new double[aaDepth * aaDepth];
-            double* tempB = new double[aaDepth * aaDepth];
+            for ( uint32_t aax = 0; aax < aaDepth; ++aax ) {
+                for ( uint32_t aay = 0; aay < aaDepth; ++aay ) {
 
-            // Offset the position from the camera to the image plane.
-            // No AA.
-            if ( mWidth > mHeight ) {
-                xa = ( ( x + 0.5 ) / mWidth ) * mAspectRatio - 
-                    ( ( mWidth - mHeight ) / static_cast<double>( mHeight ) / 2. );
-                ya = ( ( mHeight - y ) + 0.5 ) / mHeight;
+                    const uint32_t aaIndex = aay * aaDepth + aax;
+                    double xa = 0., ya = 0.;
+                    double tR = 0., tG = 0., tB = 0.;
+
+                    if ( aaDepth == 1 ) {
+                        // Offset the position from the camera to the image plane to create a perspective.
+                        // No AA.
+                        if ( mWidth > mHeight ) {
+                            xa = ( ( x + 0.5 ) / mWidth ) * mAspectRatio -
+                                ( ( mWidth - mHeight ) / static_cast<double>( mHeight ) / 2. );
+                            ya = ( ( mHeight - y ) + 0.5 ) / mHeight;
+                        }
+                        else if ( mWidth < mHeight ) {
+                            xa = ( x + 0.5 ) / mWidth;
+                            ya = ( ( ( mHeight - y ) + 0.5 ) / mHeight ) / mAspectRatio -
+                                ( ( mHeight - mWidth ) / static_cast<double>( mWidth ) / 2. );
+                        }
+                        else {
+                            xa = ( x + 0.5 ) / mWidth;
+                            ya = ( ( mHeight - y ) + 0.5 ) / mHeight;
+                        }
+
+                    }
+                    else {
+                        if ( mWidth > mHeight ) {
+                            xa = ( ( x + static_cast<double>( aax ) / ( static_cast<double>( aaDepth ) - 1 ) ) / mWidth ) * mAspectRatio -
+                                ( ( mWidth - mHeight ) / static_cast<double>( mHeight ) / 2. );
+                            ya = ( ( mHeight - y ) + static_cast<double>( aay ) / ( static_cast<double>( aaDepth ) - 1 ) ) / mHeight;
+                        }
+                        else if ( mWidth < mHeight ) {
+                            xa = ( x + static_cast<double>( aax ) / ( static_cast<double>( aaDepth ) - 1 ) ) / mWidth;
+                            ya = ( ( ( mHeight - y ) + static_cast<double>( aay ) / ( static_cast<double>( aaDepth ) - 1 ) ) ) / mHeight / mAspectRatio -
+                                ( ( mHeight - mWidth ) / static_cast<double>( mWidth ) / 2. );
+                        }
+                        else {
+                            xa = ( x + static_cast<double>( aax ) / ( static_cast<double>( aaDepth ) - 1 ) ) / mWidth;
+                            ya = ( ( mHeight - y ) + static_cast<double>( aay ) / ( static_cast<double>( aaDepth ) - 1 ) ) / mHeight;
+                        }
+                    }
+
+                    // Create ray for this pixel.
+                    const Vector3 rayOrigin = mCamera->getPosition();
+                    const Vector3 v = mCamera->getDown() * ( ya - 0.5 );
+                    const Vector3 u = mCamera->getRight() * ( xa - 0.5 );
+                    const Vector3 uv = u + v;
+                    const Vector3 rayDirection = ( mCamera->getDirection() + uv ).normalizedCopy();
+
+                    const Ray camRay( rayOrigin, rayDirection );
+
+                    std::vector<double> intersections;
+
+                    for ( auto& i : mObjects ) {
+                        ObjectPtr object = i;
+                        const double intersection = object->getIntersection( camRay );
+                        intersections.push_back( intersection );
+                    }
+
+                    const int32_t index = getFirstIntersection( intersections );
+
+                    //printf( "%d", index );
+
+                    if ( index == -1 ) {
+                        temp[aaIndex] = Color::BLACK;
+                    }
+                    else if ( intersections[index] > 0.000001 ) {
+                        const Vector3 p = rayOrigin + ( rayDirection * intersections[index] );
+                        const Vector3 q = rayDirection;
+
+                        const Color c = getColorAt( p, q, index );
+
+                        temp[aaIndex] = c;
+                    }
+                    else {
+                        temp[aaIndex] = Color::BLACK;
+                    }
+
+                    //delete [] tempR, tempG, tempB;
+                    
+
+                }
+            }   
+
+            Color total;
+
+            for ( uint32_t j = 0; j < aaDepth * aaDepth; ++j ) {
+                total = total + temp[j];
             }
-            else if ( mWidth < mHeight ) {
-                xa = ( x + 0.5 ) / mWidth;
-                ya = ( ( ( mHeight - y ) + 0.5 ) / mHeight ) / mAspectRatio - 
-                    ( ( mHeight - mWidth ) / static_cast<double>( mWidth ) / 2. );
-            }
-            else {
-                xa = ( x + 0.5 ) / mWidth;
-                ya = ( ( mHeight - y ) + 0.5 ) / mHeight;
-            }
 
-            // Create ray for this pixel.
-            const Vector3 rayOrigin = mCamera->getPosition();
-            const Vector3 v = mCamera->getDown() * ( ya - 0.5 );
-            const Vector3 u = mCamera->getRight() * ( xa - 0.5 );
-            const Vector3 uv = u + v;
-            const Vector3 rayDirection = ( mCamera->getDirection() + uv ).normalizedCopy();
- 
-            const Ray camRay( rayOrigin, rayDirection );
+            Color avg = total / ( aaDepth * aaDepth );
 
-            std::vector<double> intersections;
+            mPixels[i] = avg;
 
-            for ( auto& i : mObjects ) {
-                ObjectPtr object = i;
-                const double intersection = object->getIntersection( camRay );
-                intersections.push_back( intersection );
-            }
+            
+        } // for int y
+    } // for int x
 
-            const int32_t index = getFirstIntersection( intersections );
-
-            //printf( "%d", index );
-
-            if ( index == -1 ) {
-                mPixels[i].setR( 0. );
-                mPixels[i].setG( 0. );
-                mPixels[i].setB( 0. );
-            }
-            else if ( intersections[index] > 0.000001 ) {
-                    const Vector3 p = rayOrigin + ( rayDirection * intersections[index] );
-                    const Vector3 q = rayDirection;
-
-                    const Color c = getColorAt( p, q, index );
-
-                    mPixels[i] = c;
-            }
-            else {
-                mPixels[i] = Color::BLACK;
-            }
-
-            delete [] tempR, tempG, tempB;
-        }
-    }
+    delete [] temp;
 }
 
 // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: //

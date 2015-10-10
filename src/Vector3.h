@@ -35,6 +35,12 @@ namespace RT {
 
         const Vector3 cross( const Vector3& r );
 
+        const Vector3 cross( const Vector3& r ) const;
+
+        void rotate( const Vector3& axis, const double angle );
+
+        const Vector3 rotatedCopy( const Vector3& axis, const double angle );
+
         // Operators:
 
         inline Vector3& operator = ( const Vector3& r )
@@ -127,6 +133,12 @@ namespace RT {
         const double getX( void ) const { return mX; }
         const double getY( void ) const { return mY; }
         const double getZ( void ) const { return mZ; }
+
+        // Setters:
+
+        void setX( const double x ) { mX = x; }
+        void setY( const double y ) { mY = y; }
+        void setZ( const double z ) { mZ = z; }
 
         // Static unit vectors for each axis.
 

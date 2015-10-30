@@ -1,1 +1,1 @@
-# Ray Tracer
+![ray](render.bmp)
